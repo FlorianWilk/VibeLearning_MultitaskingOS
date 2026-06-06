@@ -1,0 +1,9 @@
+# Build-Artefakte (via make erzeugt)
+build/
+
+# QEMU-Images & Screenshots (generiert)
+*.img
+*.ppm
+
+# Lokale Claude-Konfiguration & Memory (nicht teilen)
+.claude/
