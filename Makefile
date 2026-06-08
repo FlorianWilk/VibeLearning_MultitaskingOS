@@ -2,7 +2,10 @@
 # Konfiguration
 # ============================================================================
 ASM   := nasm
-QEMU  := qemu-system-i386
+# qemu-system-x86_64: echtes Superset -- bootet Real Mode, 32-bit UND 64-bit
+# (Long Mode). qemu-system-i386 koennte ab Stage 15 (64-bit) NICHT booten,
+# da es eine 32-bit-only CPU ohne Long Mode emuliert.
+QEMU  := qemu-system-x86_64
 
 # Welche Version gebaut/gebootet wird. Ueberschreibbar auf der Kommandozeile:
 #   make STAGE=1a_bootsektor run

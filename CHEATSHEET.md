@@ -43,10 +43,16 @@ make clean
 13 Argument-Passing (13a, echo), ls + cat (13b)
 14 write-Befehl: kwrite+writefile zurueckportiert (14a Overwrite); echtes
    Datei-Anlegen via imap/zmap-Allokation + dirent (14b)
+15 64-bit-Reise: Long Mode (15a), Timer-IRQ/IDT-64 (15b), Tastatur (15c),
+   syscall/sysret + Ring 3 (15d)
 ```
 
-Neueste/relevanteste Stage: **stage14/14b_create** (vollstaendigster Kernel +
-Shell, Dateien anlegen + lesen + schreiben). Davon ausgehend weiterbauen.
+Vollstaendigster 32-bit-Kernel: **stage14/14b_create** (Shell, Dateien anlegen +
+lesen + schreiben). 64-bit-Reise: **stage15/** (15a Long Mode .. 15d syscall).
+
+**WICHTIG ab Stage 15:** Emulator ist `qemu-system-x86_64` (im Makefile global).
+`qemu-system-i386` kann KEIN Long Mode (32-bit-only CPU) -> 64-bit-Stages booten
+nicht. x86_64 ist Superset, bootet auch alle 32-bit-Stages 1-14 unveraendert.
 
 ## Konventionen im aktuellen Kernel (Stage 12/13)
 

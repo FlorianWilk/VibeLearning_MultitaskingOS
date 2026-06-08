@@ -31,7 +31,7 @@ zwei Schritten), nicht durch Lesen einer fertigen Codebasis.
 
 ## Schnellstart
 
-Voraussetzungen: `nasm`, `qemu-system-i386`, `make`, `imagemagick` (für `shot`),
+Voraussetzungen: `nasm`, `qemu-system-x86_64`, `make`, `imagemagick` (für `shot`),
 `python3` (für die Disk-Images). Auf Debian/Ubuntu:
 
 ```
@@ -102,6 +102,12 @@ stage13/
 stage14/
   14a_write/...                 write <datei> <text> (writefile, Overwrite)
   14b_create/...                Dateien anlegen (imap/zmap-Allokation + dirent)
+stage15/
+  15a_long_mode/boot.asm        Sprung nach 64-bit (Long Mode): PAE, 4-Level-
+                                Paging, EFER.LME -> r8/r9 als Beweis
+  15b_timer/...                 Timer-IRQ in 64-bit (IDT mit 16-Byte-Gates, iretq)
+  15c_keyboard/...              Tastatur-IRQ in 64-bit (Scancode -> ASCII)
+  15d_syscall/...               syscall/sysret + Ring 3 (MSRs STAR/LSTAR/SFMASK)
 stage5/
   5_load_init/...               /init.bin von Minix-FS laden + Ring-3-Start
 stage6/
@@ -258,6 +264,34 @@ Bug dabei (latent seit Etappe 13): `read` liefert nur die Laenge und
 terminiert nicht; die Shell muss die Kommandozeile selbst mit 0 abschliessen,
 sonst liest die Namens-Extraktion bei einem kurzen Befehl nach einem langen die
 Reste mit ("ls" nach "write neu.txt..." wird zu "lsite" -> nicht gefunden).
+
+## Etappe 15 -- 64-bit (Long Mode), die naechste CPU-Generation
+
+Bis Etappe 14 war alles 32-bit Protected Mode -- Linus' 386-Welt von 1991. Hier
+beginnt der Sprung, den die echte Hardware 2003 mit AMD64 machte.
+
+```
+[x] 15a  Long Mode betreten   Anders als Real->Protected braucht Long Mode
+                              ZWINGEND Paging vorab: PAE (CR4), 4-Level-Tabellen
+                              (PML4->PDPT->PD, 2-MB-Identity-Page), EFER.LME,
+                              dann PG+PE und Far Jump in einen Code-Deskriptor
+                              mit L-Bit. Beweis: 64-bit-Register r8/r9.
+[x] 15b  Timer-IRQ (64-bit)   IDT-Eintraege sind jetzt 16 Byte (Offset auf
+                              0..15/16..31/32..63), Rueckkehr mit iretq, kein
+                              pusha/popa. PIC-Programmierung unveraendert.
+[x] 15c  Tastatur-IRQ         IRQ1 in 64-bit: Scancode aus Port 0x60 -> ASCII,
+                              getippte Zeichen erscheinen.
+[x] 15d  syscall / sysret     Der moderne Syscall (statt int 0x80), per MSRs
+                              (EFER.SCE, STAR, LSTAR, SFMASK). Voller Round-Trip
+                              Ring 0 -> iretq -> Ring 3 -> syscall -> Handler
+                              -> sysret -> Ring 3.
+```
+
+ETAPPE 15 LAEUFT -- ab hier braucht es `qemu-system-x86_64` (eine 64-bit-faehige
+CPU); `qemu-system-i386` emuliert eine 32-bit-only CPU ohne Long Mode und kann
+diese Stages nicht booten. Das Makefile ist darum global auf `qemu-system-x86_64`
+umgestellt -- es ist ein Superset und bootet auch alle 32-bit-Stages 1-14
+unveraendert.
 
 ## Etappe 5 -- Programm aus dem Dateisystem laden
 
